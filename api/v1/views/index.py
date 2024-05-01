@@ -4,13 +4,13 @@ from flask import jsonify
 from api.v1.views import app_views
 
 
-@app_views.route("/status")
+@app_views.route('/status', methods=['GET'], strict_slashes=False)
 def status():
     return jsonify({"status": "OK"})
 
 @app_views.route("/stats", methods=['GET'], strict_slashes=False)
 def stats():
-    """Retreiving every object type using count method"""
+    """gets number of objects"""
     obj_count = {
             'amenities': storage.count('Amenity'),
             'cities': storage.count('City'),
@@ -19,4 +19,4 @@ def stats():
             'states': storage.count('State'),
             'users': storage.count('User')
     }
-    return jsonify(objects_count)
+    return jsonify(obj_count)
