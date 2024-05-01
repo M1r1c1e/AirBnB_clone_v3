@@ -17,10 +17,13 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
 
 classes = {"Amenity": Amenity, "City": City,
-           "Place": Place, "Review": Review, "State": State, "User": User}
+           "Place": place.Place, "Review": review.Review, "State": state.State, "User": user.User}
 
 
 class DBStorage:
+    classes = {"Amenity": Amenity, "City": City, base_model.BaseModel
+           "Place": Place, "Review": Review, "State": State, "User": User}
+
     """interaacts with the MySQL database"""
     __engine = None
     __session = None
@@ -41,15 +44,43 @@ class DBStorage:
             Base.metadata.drop_all(self.__engine)
 
     def all(self, cls=None):
-        """query on the current database session"""
-        new_dict = {}
-        for clss in classes:
-            if cls is None or cls is classes[clss] or cls is clss:
-                objs = self.__session.query(classes[clss]).all()
-                for obj in objs:
-                    key = obj.__class__.__name__ + '.' + obj.id
-                    new_dict[key] = obj
-        return (new_dict)
+        """ returns a dictionary of all objects """
+        cls_dict = {}
+        if cls:
+            obj_class = self.__session.query(self.classes.get(cls)).all()
+            for item in obj_class:
+                key = str(item.__class__.__name__) + "." + str(item.id)
+                cls_dict[key] = item
+            return cls_dict
+        for class_name in self.classes:
+            if class_name == 'BaseModel':
+                continue
+            obj_class = self.__session.query(
+                self.classes.get(class_name)).all()
+            for item in obj_class:
+                key = str(item.__class__.__name__) + "." + str(item.id)
+                cls_dict[key] = item
+        return cls_dict
+
+    def get(self, cls, id):
+        """
+        obtains a spercific object using ID
+        """
+        all_cls = self.all(cls)
+
+        for obj in all_cls.values():
+            if id == str(obj.id):
+                return obj
+
+        return None
+
+    def count(self, cls=None):
+        """
+        counts the number of instance of a class
+        """
+        return len(self.all(cls))
+
+
 
     def new(self, obj):
         """add the object to the current database session"""
